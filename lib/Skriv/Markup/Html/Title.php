@@ -46,8 +46,8 @@ class Title extends \WikiRenderer\Block {
 					throw new \Exception('Unable to find an ID based on "' . $baseId . '"');
 				$id = $baseId . '-' . ++$num;
 			} while (isset($this->titleIds[$id]));
-		} else
-			$this->titleIds[$id] = true;
+		}
+		$this->titleIds[$id] = true;
 		return ("<h$level id=\"$id\">$html</h$level>");
 	}
 }
