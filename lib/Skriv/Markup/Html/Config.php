@@ -45,8 +45,11 @@ class Config extends \WikiRenderer\Config  {
 	);
 
 	/* ************ SKRIV MARKUP SPECIFIC ATTRIBUTES ************* */
+	private $_charset = 'UTF-8';
 	/** List of the footnotes. */
 	private $_footnotes = null;
+	/** Used markup ids. */
+	private $_markupIds;
 	/** Tree representing the table of content. */
 	private $_toc = null;
 	/** Parent configuration object, used for recursive calls. */
@@ -57,34 +60,38 @@ class Config extends \WikiRenderer\Config  {
 	/* ******************** CONSTRUCTION ****************** */
 	/**
 	 * Constructor.
-	 * @param	array	$param		(optionnel) Hash containing specific configuration parameters.
-	 *		- bool		shortenLongUrl		Specifies if we must shorten URLs longer than 40 characters. (default: true)
-	 *		- bool		convertSmileys		Specifies if we must convert smileys. (default: true)
-	 *		- bool		convertSymbols		Specifies if we must convert symbols. (default: true)
-	 *		- Closure	urlProcessFunction	URLs processing function. (default: null)
-	 *		- Closure	preParseFunction	Function for pre-parse process. (default: null)
-	 *		- Closure	postParseFunction	Function for post-parse process. (default: null)
-	 *		- Closure	titleToIdFunction	Function that converts title strings into HTML identifiers. (default: null)
-	 *		- string	anchorsPrefix		Prefix of anchors' identifiers. (default: "skriv-" + random value)
-	 *		- string	footnotesPrefix		Prefix of footnotes' identifiers. (default: "skriv-notes-" + random value)
-	 *		- bool		codeSyntaxHighlight	Activate code highlighting. (default: true)
-	 *		- bool		codeLineNumbers		Line numbers in code blocks. (default: true)
-	 *		- int		firstTitleLevel		Offset of first level titles. (default: 1)
-	 *		- bool		targetBlank		Add "target='_blank'" to every links.
-	 *		- bool		nofollow		Add "rel='nofollow'" to every links.
-	 *		- bool		addFootnotes		Add footnotes' content at the end of the page.
-	 *		- bool		codeInlineStyles	Activate inline styles in code blocks. (default: false)
+	 * @param	$param array	(optional) Contains the specific configuration parameters:
+	 * <ul>
+	 * 	<li><strong>charset</strong> <em>string</em>	The charset. (default: 'UTF-8')</li>
+	 * 	<li><strong>shortenLongUrl</strong> <em>bool</em>	Specifies if we must shorten URLs longer than 40 characters. (default: true)</li>
+	 * 	<li><strong>convertSmileys</strong> <em>bool</em>		Specifies if we must convert smileys. (default: true)
+	 * 	<li><strong>convertSymbols</strong> <em>bool</em>		Specifies if we must convert symbols. (default: true)
+	 * 	<li><strong>urlProcessFunction</strong> <em>Closure</em>	URLs processing function. (default: null)
+	 * 	<li><strong>preParseFunction</strong> <em>Closure</em>	Function for pre-parse process. (default: null)
+	 * 	<li><strong>postParseFunction</strong> <em>Closure</em>	Function for post-parse process. (default: null)
+	 * 	<li><strong>titleToIdFunction</strong> <em>Closure</em>	Function that converts title strings into HTML identifiers. (default: null)
+	 * 	<li><strong>markupIdsPrefix</strong> <em>string</em>		Prefix of footnotes' identifiers. (default: "skriv-" + random value)
+	 * 	<li><strong>anchorsPrefix</strong> <em>string</em>		Prefix of anchors' identifiers. (default: "")
+	 * 	<li><strong>footnotesPrefix</strong> <em>string</em>		Prefix of footnotes' identifiers. (default: "note-")
+	 * 	<li><strong>codeSyntaxHighlight</strong> <em>bool</em>	Activate code highlighting. (default: true)
+	 * 	<li><strong>codeLineNumbers</strong> <em>bool</em>		Line numbers in code blocks. (default: true)
+	 * 	<li><strong>firstTitleLevel</strong> <em>int</em>		Offset of first level titles. (default: 1)
+	 * 	<li><strong>targetBlank</strong> <em>bool</em>		Add "target='_blank'" to every links.
+	 * 	<li><strong>nofollow</strong> <em>bool</em>		Add "rel='nofollow'" to every links.
+	 * 	<li><strong>addFootnotes</strong> <em>bool</em>		Add footnotes' content at the end of the page.
+	 * 	<li><strong>codeInlineStyles</strong> <em>bool</em>	Activate inline styles in code blocks. (default: false)
+	 * </ul>
 	 * @param	\Skriv\Markup\Html\Config	parentConfig	Parent configuration object, for recursive calls.
 	 */
 	public function __construct(array $param=null, \Skriv\Markup\Html\Config $parentConfig=null) {
 		// creation of the default parameters array
-		$randomId = base_convert(rand(0, 50000), 10, 36);
 		$this->_params = array(
 			'shortenLongUrl'	=> true,
 			'convertSmileys'	=> true,
 			'convertSymbols'	=> true,
+			'markupIdsPrefix'	=> 'skriv-' . base_convert(rand(0, 50000), 10, 36) . '-',
 			'anchorsPrefix'		=> '',
-			'footnotesPrefix'	=> "skriv-notes-$randomId-",
+			'footnotesPrefix'	=> 'note-',
 			'urlProcessFunction'	=> null,
 			'preParseFunction'	=> null,
 			'postParseFunction'	=> null,
@@ -98,12 +105,16 @@ class Config extends \WikiRenderer\Config  {
 			'codeInlineStyles'	=> false
 		);
 		// processing of specified parameters
+		if (isset($param['charset']))
+			$this->_charset = $param['charset'];
 		if (isset($param['shortenLongUrl']) && $param['shortenLongUrl'] === false)
 			$this->_params['shortenLongUrl'] = false;
 		if (isset($param['convertSmileys']) && $param['convertSmileys'] === false)
 			$this->_params['convertSmileys'] = false;
 		if (isset($param['convertSymbols']) && $param['convertSymbols'] === false)
 			$this->_params['convertymbols'] = false;
+		if (isset($param['markupIdsPrefix']))
+			$this->_params['markupIdsPrefix'] = $param['markupIdsPrefix'];
 		if (isset($param['anchorsPrefix']))
 			$this->_params['anchorsPrefix'] = $param['anchorsPrefix'];
 		if (isset($param['footnotesPrefix']))
@@ -134,7 +145,6 @@ class Config extends \WikiRenderer\Config  {
 		// storing the parent configuration object
 		$this->_parentConfig = $parentConfig;
 		// footnotes liste init
-		$this->_footnotes = array();
 	}
 	/**
 	 * Build an object of the same type, "child" of the current object.
@@ -157,6 +167,18 @@ class Config extends \WikiRenderer\Config  {
 	}
 
 	/* *************** TEXT MANAGEMENT ************* */
+	/**
+	 * Escape special characters
+	 */
+	public function escHtml($s) {
+		return htmlspecialchars($s, ENT_NOQUOTES, $this->_charset);
+	}
+	/**
+	 * Escape special characters
+	 */
+	public function escAttr($s) {
+		return htmlspecialchars($s, ENT_QUOTES, $this->_charset);
+	}
 	/**
 	 * Convert title string to a usable HTML identifier.
 	 * @param	int	$depth	Depth of the title.
@@ -194,6 +216,9 @@ class Config extends \WikiRenderer\Config  {
 	 * @return	string	The text that will be parsed.
 	 */
 	public function onStart($text) {
+		$this->_footnotes = array();
+		$this->_markupIds = array();
+		$this->_toc = null;
 		// process of smileys and other special characters
 		if ($this->getParam('convertSmileys'))
 			$text = Smiley::convertSmileys($text);
@@ -285,6 +310,27 @@ class Config extends \WikiRenderer\Config  {
 		return ($html);
 	}
 
+	/* ******************** ID MANAGEMENT **************** */
+	/**
+	 * Create an ID for HTML markup. The id is unique.
+	 * @param	string	$text	The input text.
+	 * @return	string	The text that will be parsed.
+	 */
+	public function createMarkupId($baseId) {
+		if (isset($this->_parentConfig))
+			return $this->_parentConfig->createMarkupId($baseId);
+		$prefixedBaseId = $this->getParam('markupIdsPrefix') . $baseId;
+		$id = $prefixedBaseId;
+		$num = 1;
+		while (isset($this->_markupIds[$id])) {
+			if ($num >= 100)
+				throw new \Exception('Unable to find an ID based on "' . $baseId . '"');
+			$id = $prefixedBaseId . '-' . ++$num;
+		}
+		$this->_markupIds[$id] = true;
+		return $id;
+	}
+
 	/* ******************** FOOTNOTES MANAGEMENT **************** */
 	/**
 	 * Add a footnote.
@@ -296,18 +342,15 @@ class Config extends \WikiRenderer\Config  {
 	public function addFootnote($text, $label=null) {
 		if (isset($this->_parentConfig))
 			return ($this->_parentConfig->addFootnote($text, $label));
-		if (is_null($label))
-			$this->_footnotes[] = $text;
-		else
-			$this->_footnotes[] = array(
-				'label'	=> $label,
-				'text'	=> $text
-			);
-		$index = count($this->_footnotes);
-		return (array(
-			'id'	=> $this->getParam('footnotesPrefix') . "-$index",
+		$index = count($this->_footnotes) + 1;
+		$note = array(
+			'label'	=> $label, // nullable
+			'text'	=> $text,
+			'id'	=> $this->createMarkupId($this->getParam('footnotesPrefix') . $index),
 			'index'	=> $index
-		));
+		);
+		$this->_footnotes[] = $note;
+		return $note;
 	}
 	/**
 	 * Returns the footnotes content. By default, the rendered HTML is returned, but the
@@ -318,24 +361,23 @@ class Config extends \WikiRenderer\Config  {
 	 */
 	public function getFootnotes($raw=false) {
 		if ($raw === true)
-			return ($this->_footnotes);
+			return $this->_footnotes;
 		if (empty($this->_footnotes))
-			return (null);
+			return null;
 		$footnotes = '';
 		$index = 1;
 		foreach ($this->_footnotes as $note) {
-			$id = $this->getParam('footnotesPrefix') . "-$index";
-			$noteHtml = "<p class=\"footnote\"><a href=\"#cite_ref-$id\" name=\"cite_note-$id\" id=\"cite_note-$id\">";
-			if (is_string($note))
-				$noteHtml .= "$index</a>. $note";
+			$noteHtml = '<p class="footnote"><a href="#' . $note['id'] . '" id="' . $note['id'] . '">';
+			if (isset($note['label']))
+				$noteHtml .= $this->escHtml($note['label']) . '</a>. ' . $this->escHtml($note['text']);
 			else
-				$noteHtml .= htmlspecialchars($note['label']) . "</a>. " . $note['text'];
+				$noteHtml .= $index . '</a>. ' . $this->escHtml($note['text']);
 			$noteHtml .= "</p>\n";
 			$footnotes .= $noteHtml;
 			$index++;
 		}
 		$footnotes = "<div class=\"footnotes\">\n$footnotes</div>\n";
-		return ($footnotes);
+		return $footnotes;
 	}
 
 	/* ****************** PRIVATE METHODS ******************** */

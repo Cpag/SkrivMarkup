@@ -10,8 +10,9 @@ class Anchor extends \WikiRenderer\TagXhtml {
 	public $separators = array('|');
 
 	public function getContent() {
-		$identifier = $this->config->textToIdentifier($this->wikiContentArr[0]);
-		return ('<a id="' . $this->config->getParam('anchorsPrefix') . $identifier . '"></a>');
+		$label = $this->wikiContentArr[0];
+		$baseId = $this->config->getParam('anchorsPrefix') . $this->config->titleToIdentifier(null, $label);
+		return '<span class="anchor" id="' . $this->config->createMarkupId($baseId) . '">' . $this->config->escHtml($label) . '</span>';
 	}
 }
 

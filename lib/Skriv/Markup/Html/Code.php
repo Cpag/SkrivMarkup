@@ -41,10 +41,10 @@ class Code extends \WikiRenderer\Block {
 			$currentContent = substr($currentContent, 0, -1);
 		// if no programming language was defined, it's a verbatim block
 		if (empty($this->_programmingLanguage))
-			return ('<pre>' . htmlspecialchars($currentContent) . '</pre>');
+			return ('<pre>' . $this->engine->getConfig()->escHtml($currentContent) . '</pre>');
 		// is syntax highlighting disabled?
 		if (!$this->engine->getConfig()->getParam('codeSyntaxHighlight') || !class_exists('\GeSHi'))
-			return ('<pre><code class="language-' . $this->_programmingLanguage . '">' . htmlspecialchars($currentContent) . '</code></pre>');
+			return ('<pre><code class="language-' . $this->_programmingLanguage . '">' . $this->engine->getConfig()->escHtml($currentContent) . '</code></pre>');
 		// syntax highlighting
 		if (!isset(self::$_geshi))
 			self::$_geshi = new \GeSHi('', '');

@@ -14,7 +14,6 @@ class Title extends \WikiRenderer\Block {
 	public $type = 'title';
 	protected $regexp = "/^(={1,6})(.*)\s*$/";
 	protected $_closeNow = true;
-	private $titleIds = [];
 
 	public function getRenderedLine() {
 		$equals = $this->_detectMatch[1];
@@ -37,17 +36,17 @@ class Title extends \WikiRenderer\Block {
 		$this->engine->getConfig()->addTocEntry($level, $html, $identifier);
 		$level += $this->engine->getConfig()->getParam('firstTitleLevel') - 1;
 
-		$id = $this->engine->getConfig()->getParam('anchorsPrefix') . $identifier;
-		if (isset($this->titleIds[$id])) {
-			$baseId = $id;
-			$num = 1;
-			do {
-				if ($num >= 100)
-					throw new \Exception('Unable to find an ID based on "' . $baseId . '"');
-				$id = $baseId . '-' . ++$num;
-			} while (isset($this->titleIds[$id]));
-		}
-		$this->titleIds[$id] = true;
+		$id = $this->engine->getConfig()->createMarkupId($this->engine->getConfig()->getParam('anchorsPrefix') . $identifier);
+//		if (isset($this->titleIds[$id])) {
+//			$baseId = $id;
+//			$num = 1;
+//			do {
+//				if ($num >= 100)
+//					throw new \Exception('Unable to find an ID based on "' . $baseId . '"');
+//				$id = $baseId . '-' . ++$num;
+//			} while (isset($this->titleIds[$id]));
+//		}
+//		$this->titleIds[$id] = true;
 		return ("<h$level id=\"$id\">$html</h$level>");
 	}
 }

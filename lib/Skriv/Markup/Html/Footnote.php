@@ -10,15 +10,19 @@ class Footnote extends \WikiRenderer\TagXhtml {
 	protected $name = 'footnote';
 	public $beginTag = '((';
 	public $endTag = '))';
+	public $separators = array('|');
 
 	public function getContent() {
-		// on ajoute la note à la liste des notes de bas de page
-		$footnoteIds = $this->config->addFootnote($this->contents[0]);
-
-		$id = $footnoteIds['id'];
-		$index = $footnoteIds['index'];
-
-		return "<sup class=\"footnote-ref\"><a href=\"#cite_note-$id\" name=\"cite_ref-$id\" id=\"cite_ref-$id\">$index</a></sup>";
+		if (isset($this->wikiContentArr[1])) {
+			$label = $this->wikiContentArr[0];
+			$content = $this->wikiContentArr[1];
+		} else {
+			$label = null;
+			$content = $this->wikiContentArr[0];
+		}
+		$note = $this->config->addFootnote($content, $label);
+		$label = isset($note['label']) ? $note['label'] : $note['index'];
+		return '<sup class="footnote-ref"><a href="#' . $note['id'] . '">' . $this->config->escHtml($label) . '</a></sup>';
 	}
 }
 
