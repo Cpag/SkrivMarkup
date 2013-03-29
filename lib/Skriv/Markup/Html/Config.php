@@ -54,8 +54,6 @@ class Config extends \WikiRenderer\Config  {
 	/* ******************** CONSTRUCTION ****************** */
 	/**
 	 * Constructor.
-	 * @param	$param array See RenderContext::__construct
-	 * @param	\Skriv\Markup\Html\Config	parentConfig	Parent configuration object, for recursive calls.
 	 */
 	public function __construct(RenderContext $renderContext, $isTopConfig = true) {
 		$this->renderContext = $renderContext;
