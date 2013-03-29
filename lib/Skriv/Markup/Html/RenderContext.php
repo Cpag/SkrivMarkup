@@ -193,6 +193,9 @@ class RenderContext {
 	 * @return	string	The text that will be parsed.
 	 */
 	public function onStart($text) {
+		// - Strip comments: %%
+		$text = str_replace("\r", "\n", str_replace("\r\n", "\n", $text));
+		$text = preg_replace('/\n?%%[^\n]*/', '', $text);
 		// process of smileys and other special characters
 		if ($this->getParam('convertSmileys'))
 			$text = Smiley::convertSmileys($text);
