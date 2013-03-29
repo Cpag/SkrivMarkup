@@ -47,10 +47,7 @@ class Config extends \WikiRenderer\Config  {
 	/* ************ SKRIV MARKUP SPECIFIC ATTRIBUTES ************* */
 
 	/** @var RenderContext */
-	public $RenderContext;
-
-	/** Parent configuration object, used for recursive calls. */
-	private $_parentConfig;
+	public $renderContext;
 
 	/* ******************** CONSTRUCTION ****************** */
 	/**
@@ -58,16 +55,15 @@ class Config extends \WikiRenderer\Config  {
 	 * @param	$param array See RenderContext::__construct
 	 * @param	\Skriv\Markup\Html\Config	parentConfig	Parent configuration object, for recursive calls.
 	 */
-	public function __construct(array $param = null, Config $parentConfig = null) {
-		$this->_parentConfig = $parentConfig;
-		$this->RenderContext = isset($parentConfig) ? $parentConfig->RenderContext : new RenderContext($param);
+	public function __construct(RenderContext $renderContext) {
+		$this->renderContext = $renderContext;
 	}
 	/**
 	 * Build an object of the same type, "child" of the current object.
 	 * @return	\Skriv\Markup\\Html\Config	The new configuration object.
 	 */
 	public function subConstruct() {
-		return new Config(null, $this);
+		return new Config($this->renderContext);
 	}
 
 	/* *************** PARAMETERS MANAGEMENT ************* */
@@ -77,7 +73,7 @@ class Config extends \WikiRenderer\Config  {
 	 * @return	mixed	Value of the configuration parameter.
 	 */
 	public function getParam($param) {
-		return $this->RenderContext->getParam($param);
+		return $this->renderContext->getParam($param);
 	}
 
 	/* *************** TEXT MANAGEMENT ************* */
@@ -85,13 +81,13 @@ class Config extends \WikiRenderer\Config  {
 	 * Escape special characters
 	 */
 	public function escHtml($s) {
-		return $this->RenderContext->escHtml($s);
+		return $this->renderContext->escHtml($s);
 	}
 	/**
 	 * Escape special characters
 	 */
 	public function escAttr($s) {
-		return $this->RenderContext->escAttr($s);
+		return $this->renderContext->escAttr($s);
 	}
 	/**
 	 * Convert title string to a usable HTML identifier.
@@ -100,11 +96,11 @@ class Config extends \WikiRenderer\Config  {
 	 * @return	string	The converted string.
 	 */
 	public function titleToIdentifier($depth, $text) {
-		return $this->RenderContext->titleToIdentifier($depth, $text);
+		return $this->renderContext->titleToIdentifier($depth, $text);
 	}
 
 	public function textToIdentifier($text) {
-		return $this->RenderContext->textToIdentifier($text);
+		return $this->renderContext->textToIdentifier($text);
 	}
 
 	/* *************** PARSING MANAGEMENT **************** */
@@ -114,13 +110,7 @@ class Config extends \WikiRenderer\Config  {
 	 * @return	string	The text that will be parsed.
 	 */
 	public function onStart($text) {
-		$text = $this->RenderContext->onStart($text);
-		// process of smileys and other special characters
-		if ($this->getParam('convertSmileys'))
-			$text = Smiley::convertSmileys($text);
-		if ($this->getParam('convertSymbols'))
-			$text = Smiley::convertSymbols($text);
-		return $text;
+		return $this->renderContext->onStart($text);
 	}
 	/**
 	 * Method called for post-parse processing.
@@ -128,7 +118,7 @@ class Config extends \WikiRenderer\Config  {
 	 * @return	string	The text after post-processing.
 	 */
 	public function onParse($finalText) {
-		return $this->RenderContext->onParse($finalText);
+		return $this->renderContext->onParse($finalText);
 	}
 	/**
 	 * Links processing.
@@ -140,7 +130,7 @@ class Config extends \WikiRenderer\Config  {
 	 *			false (no blank targeting).
 	 */
 	public function processLink($url, $tagName='') {
-		return $this->RenderContext->processLink($url);
+		return $this->renderContext->processLink($url);
 	}
 
 	/* ******************** TOC MANAGEMENT *************** */
@@ -151,7 +141,7 @@ class Config extends \WikiRenderer\Config  {
 	 * @param	string	$identifier	Identifier of the new entry.
 	 */
 	public function addTocEntry($depth, $title, $identifier) {
-		$this->RenderContext->addTocEntry($depth, $title, $identifier);
+		$this->renderContext->addTocEntry($depth, $title, $identifier);
 	}
 	/**
 	 * Returns the TOC content. By default, the rendered HTML is returned, but the
@@ -160,7 +150,7 @@ class Config extends \WikiRenderer\Config  {
 	 * @return	string|array	The TOC rendered HTML or the TOC tree.
 	 */
 	public function getToc($raw = false) {
-		return $this->RenderContext->getToc($raw);
+		return $this->renderContext->getToc($raw);
 	}
 
 	/* ******************** ID MANAGEMENT **************** */
@@ -170,7 +160,7 @@ class Config extends \WikiRenderer\Config  {
 	 * @return	string	The text that will be parsed.
 	 */
 	public function createMarkupId($baseId) {
-		return $this->RenderContext->createMarkupId($baseId);
+		return $this->renderContext->createMarkupId($baseId);
 	}
 
 	/* ******************** FOOTNOTES MANAGEMENT **************** */
@@ -182,7 +172,7 @@ class Config extends \WikiRenderer\Config  {
 	 * @return	array	Hash with 'id' and 'index' keys.
 	 */
 	public function addFootnote($text, $label = null) {
-		return $this->RenderContext->addFootnote($text, $label);
+		return $this->renderContext->addFootnote($text, $label);
 	}
 	/**
 	 * Returns the footnotes content. By default, the rendered HTML is returned, but the
@@ -192,7 +182,7 @@ class Config extends \WikiRenderer\Config  {
 	 * @return	string|array	The footnotes' rendered HTML or the list of footnotes.
 	 */
 	public function getFootnotes($raw = false) {
-		return $this->RenderContext->getFootnotes($raw);
+		return $this->renderContext->getFootnotes($raw);
 	}
 }
 

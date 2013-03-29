@@ -178,6 +178,11 @@ class RenderContext {
 		$this->_footnotes = array();
 		$this->_markupIds = array();
 		$this->_toc = null;
+		// process of smileys and other special characters
+		if ($this->getParam('convertSmileys'))
+			$text = Smiley::convertSmileys($text);
+		if ($this->getParam('convertSymbols'))
+			$text = Smiley::convertSymbols($text);
 		/** @var $func \Closure */
 		$func = $this->getParam('preParseFunction');
 		if (isset($func))

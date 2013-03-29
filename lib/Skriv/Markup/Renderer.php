@@ -54,7 +54,7 @@ class Renderer {
 	 * </ul>
 	 */
 	public function __construct(array $params=null) {
-		$this->_config = new Html\Config($params);
+		$this->_config = new Html\Config(new Html\RenderContext($params));
 		$this->_wikiRenderer = new \WikiRenderer\Renderer($this->_config);
 	}
 	/**
