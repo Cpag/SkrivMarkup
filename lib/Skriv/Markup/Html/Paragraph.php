@@ -7,8 +7,7 @@ namespace Skriv\Markup\Html;
  */
 use WikiRenderer\Renderer;
 
-class Paragraph extends \WikiRenderer\Block
-{
+class Paragraph extends \WikiRenderer\Block {
 	public $type = 'p';
 	protected $_openTag = '<p>';
 	protected $_closeTag = '</p>';

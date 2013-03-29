@@ -49,7 +49,7 @@ class Config extends \WikiRenderer\Config  {
 	/** @var RenderContext */
 	public $renderContext;
 
-	private $isTopConfig;
+	private $isTopConfig, $forceInline;
 
 	/* ******************** CONSTRUCTION ****************** */
 	/**
@@ -58,6 +58,13 @@ class Config extends \WikiRenderer\Config  {
 	public function __construct(RenderContext $renderContext, $isTopConfig = true) {
 		$this->renderContext = $renderContext;
 		$this->isTopConfig = $isTopConfig;
+		$this->forceInline = $renderContext->getParam('forceInline');
+		if ($this->forceInline) {
+			$this->blocktags = array();
+			$k = array_search('\Skriv\Markup\Html\Footnote', $this->textLineContainers['\WikiRenderer\HtmlTextLine']);
+			if ($k !== false)
+				array_splice($this->textLineContainers['\WikiRenderer\HtmlTextLine'], $k, 1);
+		}
 	}
 	/**
 	 * Build an object of the same type, "child" of the current object.
@@ -121,7 +128,13 @@ class Config extends \WikiRenderer\Config  {
 	 * @return	string	The text after post-processing.
 	 */
 	public function onParse($finalText) {
-		return $this->renderContext->onParse($finalText);
+		$finalText = $this->renderContext->onParse($finalText);
+		if ($this->forceInline) {
+			if ($this->renderContext->getParam('ignoreMultiCR'))
+				$finalText = preg_replace('/\n\n+/', "\n", $finalText);
+			$finalText = str_replace("\n", "<br/>\n", $finalText);
+		}
+		return $finalText;
 	}
 	/**
 	 * Links processing.
