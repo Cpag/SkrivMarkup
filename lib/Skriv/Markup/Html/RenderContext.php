@@ -47,6 +47,7 @@ class RenderContext {
 	 * 	<li><strong>nofollow</strong> <em>bool</em>		Add "rel='nofollow'" to every links.
 	 * 	<li><strong>addFootnotes</strong> <em>bool</em>		Add footnotes' content at the end of the page.
 	 * 	<li><strong>codeInlineStyles</strong> <em>bool</em>	Activate inline styles in code blocks. (default: false)
+	 * 	<li><strong>ignoreMultiCR</strong> <em>bool</em>	Ignore multiple carriage returns. (default: true)
 	 * </ul>
 	 */
 	public function __construct(array $param = null) {
@@ -68,7 +69,8 @@ class RenderContext {
 			'targetBlank'		=> null,
 			'nofollow'		=> null,
 			'addFootnotes'		=> false,
-			'codeInlineStyles'	=> false
+			'codeInlineStyles'	=> false,
+			'ignoreMultiCR'	=> true
 		);
 		// processing of specified parameters
 		if (isset($param['charset']))
@@ -108,6 +110,8 @@ class RenderContext {
 			$this->_params['addFootnotes'] = $param['addFootnotes'];
 		if (isset($param['codeInlineStyles']) && $param['codeInlineStyles'] === true)
 			$this->_params['codeInlineStyles'] = $param['codeInlineStyles'];
+		if (isset($param['ignoreMultiCR']) && $param['ignoreMultiCR'] === false)
+			$this->_params['ignoreMultiCR'] = false;
 	}
 
 	/* *************** PARAMETERS MANAGEMENT ************* */
