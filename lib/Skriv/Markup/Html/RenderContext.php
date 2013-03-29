@@ -170,14 +170,21 @@ class RenderContext {
 
 	/* *************** PARSING MANAGEMENT **************** */
 	/**
+	 * Method called for pre-parse processing once for all the document.
+	 * @param	string	$text	The input text.
+	 * @return	string	The text that will be parsed.
+	 */
+	public function reset() {
+		$this->_footnotes = array();
+		$this->_markupIds = array();
+		$this->_toc = null;
+	}
+	/**
 	 * Method called for pre-parse processing.
 	 * @param	string	$text	The input text.
 	 * @return	string	The text that will be parsed.
 	 */
 	public function onStart($text) {
-		$this->_footnotes = array();
-		$this->_markupIds = array();
-		$this->_toc = null;
 		// process of smileys and other special characters
 		if ($this->getParam('convertSmileys'))
 			$text = Smiley::convertSmileys($text);
@@ -277,7 +284,7 @@ class RenderContext {
 	 * @return	string	The text that will be parsed.
 	 */
 	public function createMarkupId($baseId) {
-		$prefixedBaseId = $this->getParam('markupIdsPrefix') . $baseId;
+		$prefixedBaseId = $this->escAttr($this->getParam('markupIdsPrefix') . $baseId);
 		$id = $prefixedBaseId;
 		$num = 1;
 		while (isset($this->_markupIds[$id])) {
@@ -300,7 +307,7 @@ class RenderContext {
 	public function addFootnote($text, $label=null) {
 		$index = count($this->_footnotes) + 1;
 		$note = array(
-			'label'	=> $label, // nullable
+			'label'	=> isset($label) ? $label : strval($index),
 			'text'	=> $text,
 			'id'	=> $this->createMarkupId($this->getParam('footnotesPrefix') . $index),
 			'index'	=> $index
@@ -324,10 +331,7 @@ class RenderContext {
 		$index = 1;
 		foreach ($this->_footnotes as $note) {
 			$noteHtml = '<p class="footnote"><a href="#' . $note['id'] . '" id="' . $note['id'] . '">';
-			if (isset($note['label']))
-				$noteHtml .= $this->escHtml($note['label']) . '</a>. ' . $this->escHtml($note['text']);
-			else
-				$noteHtml .= $index . '</a>. ' . $this->escHtml($note['text']);
+			$noteHtml .= $this->escHtml($note['label']) . '</a>. ' . $this->escHtml($note['text']);
 			$noteHtml .= "</p>\n";
 			$footnotes .= $noteHtml;
 			$index++;

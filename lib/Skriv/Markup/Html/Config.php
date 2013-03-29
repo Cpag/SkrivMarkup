@@ -49,21 +49,24 @@ class Config extends \WikiRenderer\Config  {
 	/** @var RenderContext */
 	public $renderContext;
 
+	private $isTopConfig;
+
 	/* ******************** CONSTRUCTION ****************** */
 	/**
 	 * Constructor.
 	 * @param	$param array See RenderContext::__construct
 	 * @param	\Skriv\Markup\Html\Config	parentConfig	Parent configuration object, for recursive calls.
 	 */
-	public function __construct(RenderContext $renderContext) {
+	public function __construct(RenderContext $renderContext, $isTopConfig = true) {
 		$this->renderContext = $renderContext;
+		$this->isTopConfig = $isTopConfig;
 	}
 	/**
 	 * Build an object of the same type, "child" of the current object.
 	 * @return	\Skriv\Markup\\Html\Config	The new configuration object.
 	 */
 	public function subConstruct() {
-		return new Config($this->renderContext);
+		return new Config($this->renderContext, false);
 	}
 
 	/* *************** PARAMETERS MANAGEMENT ************* */
@@ -110,6 +113,8 @@ class Config extends \WikiRenderer\Config  {
 	 * @return	string	The text that will be parsed.
 	 */
 	public function onStart($text) {
+		if ($this->isTopConfig)
+			$this->renderContext->reset();
 		return $this->renderContext->onStart($text);
 	}
 	/**

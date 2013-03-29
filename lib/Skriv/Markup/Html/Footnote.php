@@ -21,8 +21,7 @@ class Footnote extends \WikiRenderer\TagXhtml {
 			$content = $this->wikiContentArr[0];
 		}
 		$note = $this->config->addFootnote($content, $label);
-		$label = isset($note['label']) ? $note['label'] : $note['index'];
-		return '<sup class="footnote-ref"><a href="#' . $note['id'] . '">' . $this->config->escHtml($label) . '</a></sup>';
+		return '<sup class="footnote-ref"><a href="#' . $note['id'] . '">' . $this->config->escHtml($note['label']) . '</a></sup>';
 	}
 }
 
