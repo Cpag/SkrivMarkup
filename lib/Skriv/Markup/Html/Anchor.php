@@ -11,7 +11,7 @@ class Anchor extends \WikiRenderer\TagXhtml {
 
 	public function getContent() {
 		$label = $this->wikiContentArr[0];
-		$baseId = $this->config->getParam('anchorsPrefix') . $this->config->titleToIdentifier(null, $label);
+		$baseId = $this->config->getParam('anchorsPrefix') . $this->config->textToIdentifier($label);
 		return '<span class="anchor" id="' . $this->config->createMarkupId($baseId) . '">' . $this->config->escHtml($label) . '</span>';
 	}
 }
