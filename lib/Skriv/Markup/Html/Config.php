@@ -29,6 +29,7 @@ class Config extends \WikiRenderer\Config  {
 			'\Skriv\Markup\Html\Image',		// {{image|url}}	{{url}}
 			'\Skriv\Markup\Html\Footnote',		// ((footnote))		((label|footnote))
 			'\Skriv\Markup\Html\Anchor',		// ~~anchor~~
+			'\Skriv\Markup\Html\InlineExtension',		// <<extension|params>>
 		)
 	);
 	/** List of bloc markups. */
@@ -47,7 +48,7 @@ class Config extends \WikiRenderer\Config  {
 
 	/* ************ SKRIV MARKUP SPECIFIC ATTRIBUTES ************* */
 
-	/** @var RenderContext */
+	/** @var HtmlRenderContext */
 	public $renderContext;
 
 	private $isTopConfig, $forceInline;
@@ -56,7 +57,7 @@ class Config extends \WikiRenderer\Config  {
 	/**
 	 * Constructor.
 	 */
-	public function __construct(RenderContext $renderContext, $isTopConfig = true) {
+	public function __construct(HtmlRenderContext $renderContext, $isTopConfig = true) {
 		$this->renderContext = $renderContext;
 		$this->isTopConfig = $isTopConfig;
 		$this->forceInline = $renderContext->getParam('forceInline');
