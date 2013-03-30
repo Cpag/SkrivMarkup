@@ -1,6 +1,7 @@
 <?php
 
 namespace Skriv\Markup;
+use WikiRenderer\Config;
 
 /**
  * Main renderer object for processing of SkrivMarkup-enabled text.
@@ -11,31 +12,38 @@ namespace Skriv\Markup;
  * @see		WikiRenderer
  */
 class Renderer {
-	/** The configuration object. */
-	protected $_config = null;
+	/** @var Config */
+	private $_config = null;
 	/** The WikiRenderer object. */
-	protected $_wikiRenderer = null;
+	private $_wikiRenderer = null;
 
 	/**
 	 * Factory method. Creates a renderer object of the given type.
-	 * @param	string	$type	(optional) Type of rendering object. "html" by default.
+	 * @param	string	$type	(optional) Type of rendering object. Available values: 'html' (by default), 'plain-text'.
 	 * @param	array	$params	(optional) Hash of parameters. The accepted parameters depends of the chosen rendering type.
 	 * @return	\Skriv\Markup\Renderer	A rendering object.
 	 * @throws	\Exception	If something goes wrong.
 	 */
-	static public function factory($type='html', array $params=null) {
-		if (!isset($type) || !strcasecmp($type, 'html'))
-			return (new Renderer($params));
-		throw new \Exception("Unknown Skriv rendering type '$type'.");
+	static public function factory($type = 'html', array $params = null) {
+		if (!isset($type))
+			$type = 'html';
+		switch ($type) {
+			case 'html':
+				return (new Renderer(new Html\Config(new Html\RenderContext($params))));
+			case 'plain-text':
+				return (new Renderer(new PlainText\Config(new PlainText\RenderContext($params))));
+			default:
+				throw new \Exception("Unknown Skriv rendering type '$type'.");
+		}
 	}
 
 	/**
 	 * Constructor.
 	 * @param	$params array See RenderContext::__construct()
 	 */
-	public function __construct(array $params=null) {
-		$this->_config = new Html\Config(new Html\RenderContext($params));
-		$this->_wikiRenderer = new \WikiRenderer\Renderer($this->_config);
+	public function __construct(Config $config) {
+		$this->_config = $config;
+		$this->_wikiRenderer = new \WikiRenderer\Renderer($config);
 	}
 	/**
 	 * Parses a Skriv text and generates a converted text.
