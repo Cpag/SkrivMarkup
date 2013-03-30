@@ -42,6 +42,7 @@ class Config extends \WikiRenderer\Config  {
 		'\Skriv\Markup\Html\Table',
 		'\Skriv\Markup\Html\StyledBlock',
 		'\Skriv\Markup\Html\Paragraph',
+		'\Skriv\Markup\Html\MultiCR'
 	);
 
 	/* ************ SKRIV MARKUP SPECIFIC ATTRIBUTES ************* */

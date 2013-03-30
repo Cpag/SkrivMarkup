@@ -8,6 +8,7 @@ namespace Skriv\Markup\Html;
 class Blockquote extends \WikiRenderer\Block {
 	public $type = 'bq';
 	protected $regexp = "/^(\>+)(.*)/";
+	private $_previousTag, $_firstTagLen, $_firstLine;
 
 	public function open() {
 		$this->_previousTag = $this->_detectMatch[1];
@@ -31,7 +32,7 @@ class Blockquote extends \WikiRenderer\Block {
 			if ($this->_firstLine)
 				$this->_firstLine = false;
 			else
-				$str = '<br />';
+				$str = '<br/>';
 		}
 		return ($str . $this->_renderInlineTag($this->_detectMatch[2]));
 	}

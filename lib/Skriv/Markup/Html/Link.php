@@ -27,8 +27,7 @@ class Link extends \WikiRenderer\TagXhtml {
 		$nofollow = isset($nofollow) ? $nofollow : $this->config->getParam('nofollow');
 		if (!isset($targetBlank) || !isset($nofollow)) {
 			// no targetBlank behaviour defined, check the link
-			if ((isset($href[0]) && isset($href[1]) && $href[0] === '/' && $href[1] === '/') ||
-			    strpos($href, '://') !== false) {
+			if ((isset($href[0]) && isset($href[1]) && $href[0] === '/' && $href[1] === '/') || strpos($href, '://') !== false) {
 				if (!isset($targetBlank))
 					$targetBlank = true;
 				if (!isset($nofollow))
