@@ -44,6 +44,7 @@ class Paragraph extends \WikiRenderer\Block {
 			$this->_crCount = 0;
 		if (!preg_match("/^\s*\*{2}.*\*{2}\s*.*$/", $string) &&
 				!preg_match("/^\s*#{2}.*#{2}\s*.*$/", $string) &&
+				!preg_match("/^\s*<<[^<]*$/", $string) &&
 				preg_match("/^\s*[\*#\-\!\| \t>;<=].*/", $string)
 		)
 			return (false);
