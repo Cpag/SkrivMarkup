@@ -48,8 +48,6 @@ class Paragraph extends \WikiRenderer\Block {
 	 * @return  string  Texte traité.
 	 */
 	protected function _renderInlineTag($string) {
-		if ($string === '')
-			return '<br/>';
 		$string = $this->engine->inlineParser->parse($string);
 		// gestion des retours-charriot dans les paragraphes
 		if ($this->_firstLine)
