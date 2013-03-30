@@ -224,7 +224,7 @@ class RenderContext {
 			if (!empty($footnotes))
 				$finalText .= "\n" . $footnotes;
 		}
-		return ($finalText);
+		return $finalText;
 	}
 	/**
 	 * Links processing.
@@ -238,19 +238,23 @@ class RenderContext {
 		$label = $url = trim($url);
 		$targetBlank = $this->getParam('targetBlank');
 		$nofollow = $this->getParam('nofollow');
+
 		// shortening of long URLs
+		$label = preg_replace('/^http\:?\/\//', '', $label);
 		if ($this->getParam('shortenLongUrl') && strlen($label) > 40)
-			$label = substr($label, 0, 40) . '...';
+			$label = $this->escHtml(substr($label, 0, 40)) . '&hellip;';
+		else
+			$label = $this->escHtml($label);
 		// Javascript XSS check
-		if (substr($url, 0, strlen('javascript:')) === 'javascript:')
+		if (preg_match('/^javascript\s*\:/', $url) !== 0)
 			$url = '#';
 		else {
 			// email check
 			if (filter_var($url, FILTER_VALIDATE_EMAIL)) {
 				$url = "mailto:$url";
 				$targetBlank = $nofollow = false;
-			} else if (substr($url, 0, strlen('mailto:')) === 'mailto:') {
-				$label = substr($url, strlen('mailto:'));
+			} else if (substr_compare($url, 'mailto:', 0, 7) === 0) {
+				$label = substr($url, 7);
 				$targetBlank = $nofollow = false;
 			}
 			// if a specific URL process function was defined, it is called
@@ -259,7 +263,6 @@ class RenderContext {
 			if (isset($func))
 				list($url, $label, $targetBlank, $nofollow) = $func($url, $label, $targetBlank, $nofollow);
 		}
-
 		return (array($url, $label, $targetBlank, $nofollow));
 	}
 
@@ -339,13 +342,11 @@ class RenderContext {
 		if (empty($this->_footnotes))
 			return null;
 		$footnotes = '';
-		$index = 1;
 		foreach ($this->_footnotes as $note) {
 			$noteHtml = '<p class="footnote"><a href="#' . $note['id'] . '" id="' . $note['id'] . '">';
 			$noteHtml .= $this->escHtml($note['label']) . '</a>. ' . $this->escHtml($note['text']);
 			$noteHtml .= "</p>\n";
 			$footnotes .= $noteHtml;
-			$index++;
 		}
 		$footnotes = "<div class=\"footnotes\">\n$footnotes</div>\n";
 		return $footnotes;
