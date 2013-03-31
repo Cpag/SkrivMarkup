@@ -30,7 +30,9 @@ class Title extends \WikiRenderer\Block {
 		}
 		$html = $this->_renderInlineTag($text);
 		$identifier = empty($identifier) ? $text : $identifier;
-		$identifier = $this->engine->getConfig()->titleToIdentifier($level, $identifier);
+		/** @var $config Config */
+		$config = $this->engine->getConfig();
+		$identifier = $config->renderContext->titleToIdentifier($level, $identifier);
 
 		$this->engine->getConfig()->addTocEntry($level, $html, $identifier);
 		$level += $this->engine->getConfig()->getParam('firstTitleLevel') - 1;

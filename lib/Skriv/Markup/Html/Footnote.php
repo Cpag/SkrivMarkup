@@ -13,7 +13,9 @@ class Footnote extends \WikiRenderer\TagXhtml {
 
 	public function getContent() {
 		// on ajoute la note à la liste des notes de bas de page
-		$footnoteIds = $this->config->addFootnote($this->contents[0]);
+		/** @var $config Config */
+		$config = $this->config;
+		$footnoteIds = $config->renderContext->addFootnote($this->contents[0]);
 
 		$id = $footnoteIds['id'];
 		$index = $footnoteIds['index'];
