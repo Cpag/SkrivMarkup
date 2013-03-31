@@ -29,29 +29,31 @@ class HtmlRenderingContext extends RenderingContext {
 	/* ******************** CONSTRUCTION ****************** */
 	/**
 	 * Constructor.
-	 * @param	array	$params		(optionnel) Hash containing specific configuration parameters.
-	 *		- bool		shortenLongUrl		Specifies if we must shorten URLs longer than 40 characters. (default: true)
-	 *		- bool		convertSmileys		Specifies if we must convert smileys. (default: true)
-	 *		- bool		convertSymbols		Specifies if we must convert symbols. (default: true)
-	 *		- Closure	urlProcessFunction	URLs processing function. (default: null)
-	 *		- Closure	preParseFunction	Function for pre-parse process. (default: null)
-	 *		- Closure	postParseFunction	Function for post-parse process. (default: null)
-	 *		- Closure	titleToIdFunction	Function that converts title strings into HTML identifiers. (default: null)
-	 *		- string	markupIdsPrefix		Prefix for all identifiers. (default: "skriv-" + random value)
-	 *		- string	anchorsPrefix		Prefix of anchors' identifiers. (default: '')
-	 *		- string	footnotesPrefix		Prefix of footnotes' identifiers. (default: "note-")
-	 *		- bool		codeSyntaxHighlight	Activate code highlighting. (default: true)
-	 *		- bool		codeLineNumbers		Line numbers in code blocks. (default: true)
-	 *		- int		firstTitleLevel		Offset of first level titles. (default: 1)
-	 *		- bool		targetBlank		Add "target='_blank'" to every links.
-	 *		- bool		nofollow		Add "rel='nofollow'" to every links.
-	 *		- bool		addFootnotes		Add footnotes' content at the end of the page.
-	 *		- bool		codeInlineStyles	Activate inline styles in code blocks. (default: false)
-	 *		- bool		ignoreMultiCR		Ignore multiple carriage returns. (default: true)
-	 *		- bool		forceInline		The produced HTML is with inline elements only. (default: false)
-	 *		- bool		debugMode		Activate the debug mode, for development purposes. (default: false)
-	 *		- bool		ext-lipsum		Activate the <<<lipsum>>> extension. (default: true)
-	 *		- bool		ext-date		Activate the <<date>> extension. (default: true)
+	 * @param	$params array	(optional) Contains the specific configuration parameters:
+	 * <ul>
+	 * 	<li><strong>shortenLongUrl</strong> <em>bool</em>	Specifies if we must shorten URLs longer than 40 characters. (default: true)</li>
+	 * 	<li><strong>convertSmileys</strong> <em>bool</em>		Specifies if we must convert smileys. (default: true)
+	 * 	<li><strong>convertSymbols</strong> <em>bool</em>		Specifies if we must convert symbols. (default: true)
+	 * 	<li><strong>urlProcessFunction</strong> <em>Closure</em>	URLs processing function. (default: null)
+	 * 	<li><strong>preParseFunction</strong> <em>Closure</em>	Function for pre-parse process. (default: null)
+	 * 	<li><strong>postParseFunction</strong> <em>Closure</em>	Function for post-parse process. (default: null)
+	 * 	<li><strong>titleToIdFunction</strong> <em>Closure</em>	Function that converts title strings into HTML identifiers. (default: null)
+	 * 	<li><strong>markupIdsPrefix</strong> <em>string</em>		Prefix for all identifiers. (default: "skriv-" + random value)
+	 * 	<li><strong>anchorsPrefix</strong> <em>string</em>		Prefix of anchors' identifiers. (default: "")
+	 * 	<li><strong>footnotesPrefix</strong> <em>string</em>		Prefix of footnotes' identifiers. (default: "note-")
+	 * 	<li><strong>codeSyntaxHighlight</strong> <em>bool</em>	Activate code highlighting. (default: true)
+	 * 	<li><strong>codeLineNumbers</strong> <em>bool</em>		Line numbers in code blocks. (default: true)
+	 * 	<li><strong>firstTitleLevel</strong> <em>int</em>		Offset of first level titles. (default: 1)
+	 * 	<li><strong>targetBlank</strong> <em>bool</em>		Add "target='_blank'" to every links.
+	 * 	<li><strong>nofollow</strong> <em>bool</em>		Add "rel='nofollow'" to every links.
+	 * 	<li><strong>addFootnotes</strong> <em>bool</em>		Add footnotes' content at the end of the page.
+	 * 	<li><strong>codeInlineStyles</strong> <em>bool</em>	Activate inline styles in code blocks. (default: false)
+	 * 	<li><strong>ignoreMultiCR</strong> <em>bool</em>	Ignore multiple carriage returns. (default: true)
+	 * 	<li><strong>forceInline</strong> <em>bool</em>	The produced HTML is with inline elements only. (default: false)
+	 *  <li><strong>debugMode</strong> <em>bool</em>	Activate the debug mode, for development purposes. (default: false)
+	 *  <li><strong>ext-lipsum</strong> <em>bool</em>	Activate the <<<lipsum>>> extension. (default: true)
+	 *  <li><strong>ext-date</strong> <em>bool</em>	Activate the <<date>> extension. (default: true)
+	 * </ul>
 	 */
 	public function __construct(array $params = null) {
 		parent::__construct($params, array(
@@ -158,6 +160,8 @@ class HtmlRenderingContext extends RenderingContext {
 	 * @return	string	The text that will be parsed.
 	 */
 	public function onStart($text) {
+		// carriage return types to "\n"
+		$text = str_replace("\r", "\n", str_replace("\r\n", "\n", $text));
 		// process of smileys and other special characters
 		if ($this->getParam('convertSmileys'))
 			$text = Smiley::convertSmileys($text);
@@ -201,19 +205,23 @@ class HtmlRenderingContext extends RenderingContext {
 		$label = $url = trim($url);
 		$targetBlank = $this->getParam('targetBlank');
 		$nofollow = $this->getParam('nofollow');
+
 		// shortening of long URLs
+		$label = preg_replace('/^http\:?\/\//', '', $label);
 		if ($this->getParam('shortenLongUrl') && strlen($label) > 40)
-			$label = substr($label, 0, 40) . '...';
+			$label = $this->escHtml(substr($label, 0, 40)) . '&hellip;';
+		else
+			$label = $this->escHtml($label);
 		// Javascript XSS check
-		if (substr($url, 0, strlen('javascript:')) === 'javascript:')
+		if (preg_match('/^javascript\s*\:/', $url) !== 0)
 			$url = '#';
 		else {
 			// email check
 			if (filter_var($url, FILTER_VALIDATE_EMAIL)) {
 				$url = "mailto:$url";
 				$targetBlank = $nofollow = false;
-			} else if (substr($url, 0, strlen('mailto:')) === 'mailto:') {
-				$label = substr($url, strlen('mailto:'));
+			} else if (substr_compare($url, 'mailto:', 0, 7) === 0) {
+				$label = substr($url, 7);
 				$targetBlank = $nofollow = false;
 			}
 			// if a specific URL process function was defined, it is called
@@ -222,7 +230,6 @@ class HtmlRenderingContext extends RenderingContext {
 			if (isset($func))
 				list($url, $label, $targetBlank, $nofollow) = $func($url, $label, $targetBlank, $nofollow);
 		}
-
 		return (array($url, $label, $targetBlank, $nofollow));
 	}
 
@@ -308,8 +315,8 @@ class HtmlRenderingContext extends RenderingContext {
 		$offset = count($list['sub']);
 		if ($depth === 1) {
 			$list['sub'][$offset] = array(
-				'id'	=> $identifier,
-				'value'	=> $title
+				'id' => $identifier,
+				'value' => $title
 			);
 			return;
 		}
