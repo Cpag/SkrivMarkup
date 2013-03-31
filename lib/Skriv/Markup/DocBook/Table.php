@@ -23,8 +23,9 @@ class Table extends \WikiRenderer\Block {
 		$prevType = '';
 		$loop = true;
 		while ($loop) {
-			if (($posTh = strpos($text, '!!', $prevPos)) === false &&
-			    ($posTd = strpos($text, '||', $prevPos)) === false) {
+			$posTh = strpos($text, '!!', $prevPos);
+			$posTd = strpos($text, '||', $prevPos);
+			if ($posTh === false && $posTd === false) {
 				$posTh = false;
 				$posTd = strlen($text);
 				$loop = false;
