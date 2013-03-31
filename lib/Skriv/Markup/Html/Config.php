@@ -29,6 +29,7 @@ class Config extends \WikiRenderer\Config  {
 			'\Skriv\Markup\Html\Image',		// {{image|url}}	{{url}}
 			'\Skriv\Markup\Html\Footnote',		// ((footnote))		((label|footnote))
 			'\Skriv\Markup\Html\Anchor',		// ~~anchor~~
+			'\Skriv\Markup\Html\UnofficialInlineExt'		// <<:name|params>>
 		)
 	);
 	/** List of block markups. */

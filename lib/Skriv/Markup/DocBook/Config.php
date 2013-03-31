@@ -29,6 +29,7 @@ class Config extends \WikiRenderer\Config  {
 			'\Skriv\Markup\DocBook\Image',		// {{image|url}}	{{url}}
 			'\Skriv\Markup\DocBook\Footnote',	// ((footnote))		((label|footnote))
 			'\Skriv\Markup\DocBook\Anchor',		// ~~anchor~~
+			'\Skriv\Markup\DocBook\UnofficialInlineExt'		// <<:name|params>>
 		)
 	);
 	/** List of bloc markups. */

@@ -12,9 +12,11 @@ namespace Skriv\Markup;
 
 abstract class RenderingContext {
 
+	public $Errors = array();
+
 	/* ************ SKRIV MARKUP SPECIFIC ATTRIBUTES ************* */
-	/** Hash containing the configuration parameters. */
-	private $_params = null;
+	private $_inlineExtensions = array();
+	private $_params;
 
 	/* ******************** CONSTRUCTION ****************** */
 	/**
@@ -49,6 +51,44 @@ abstract class RenderingContext {
 			} else
 				$this->_params[$name] = $arr[1];
 		}
+	}
+
+	/* ****************** Extensions ******************** */
+	public function registerInlineExtension(SkrivInlineExtension $ext) {
+		$conf = $ext->getConf();
+		$conf['ext'] = $ext;
+		$this->_inlineExtensions[$conf['name']] = $conf;
+	}
+
+	public function getInlineExtensionContent($name, $listedParams, $targetType) {
+		if (!isset($this->_inlineExtensions[$name])) {
+			$this->addError('Unknown extension: "' . $name . '"');
+			return '';
+		}
+		$ext = $this->_inlineExtensions[$name];
+		switch ($ext['parameters-type']) {
+			case 'listed':
+				$params = $listedParams;
+				break;
+			case 'named':
+				$params = $this->toNamedParams($listedParams);
+				break;
+			default:
+				if (!empty($listedParams))
+					$this->addError('The extension "' . $name . '" must have no parameter');
+				$params = null;
+		}
+		try {
+			return $ext['ext']->to($targetType, $params);
+		} catch (\Exception $e) {
+			$this->addError('[' . $name . '] ' . $e->getMessage());
+			return '';
+		}
+	}
+
+	/* *************** ERRORS MANAGEMENT ************* */
+	public function addError($message) {
+		$this->Errors[] = $message;
 	}
 
 	/* *************** PARAMETERS MANAGEMENT ************* */
@@ -94,4 +134,22 @@ abstract class RenderingContext {
 	 * @return	string|array	The footnotes' rendered HTML or the list of footnotes.
 	 */
 	abstract public function getFootnotes($raw = false);
+
+	/* ******************** PRIVATE **************** */
+	private function toNamedParams(array $listedParams) {
+		$arr = array();
+		$num = -1;
+		foreach ($listedParams as $p) {
+			$iSep = strpos($p, ':');
+			if ($iSep === false)
+				$arr[++$num] = $p;
+			else {
+				$name = trim(substr($p, 0, $iSep));
+				if (isset($arr[$name]))
+					$this->addError('In extension, duplicated parameter "' . $name . '"');
+				$arr[$name] = substr($p, $iSep + 1);
+			}
+		}
+		return $arr;
+	}
 }

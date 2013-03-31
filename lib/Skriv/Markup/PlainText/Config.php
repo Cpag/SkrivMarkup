@@ -28,7 +28,8 @@ class Config extends \WikiRenderer\Config  {
 			'\Skriv\Markup\PlainText\Link',		// [[link|url]]		[[url]]
 			'\Skriv\Markup\PlainText\Image',		// {{image|url}}	{{url}}
 			'\Skriv\Markup\PlainText\Footnote',		// ((footnote))		((label|footnote))
-			'\Skriv\Markup\PlainText\Anchor'		// ~~anchor~~
+			'\Skriv\Markup\PlainText\Anchor',		// ~~anchor~~
+			'\Skriv\Markup\PlainText\UnofficialInlineExt'		// <<:name|params>>
 		)
 	);
 	/** List of bloc markups. */

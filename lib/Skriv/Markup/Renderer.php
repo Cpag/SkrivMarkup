@@ -54,6 +54,11 @@ class Renderer {
 		$this->_config = $config;
 		$this->_wikiRenderer = new \WikiRenderer\Renderer($config);
 	}
+
+	public function registerInlineExtension(SkrivInlineExtension $ext) {
+		$this->_context->registerInlineExtension($ext);
+	}
+
 	/**
 	 * Parses a Skriv text and generates a converted text.
 	 * @param	string	$text	The text to parse.
@@ -84,9 +89,26 @@ class Renderer {
 	/**
 	 * Returns the lines which contain an error.
 	 * @return	array	List of lines.
+	 * @deprecated Please use getErrorsAsMessages()
 	 */
 	public function getErrors() {
 		return ($this->_wikiRenderer->errors);
 	}
+	/**
+	 * Returns the lines which contain an error.
+	 * @return  array  List of lines.
+	 */
+	public function getErrorsAsMessages() {
+		$messages = array();
+		$err = $this->_wikiRenderer->errors;
+		if ($err) {
+			if (count($err) > 1)
+				$messages[] = 'Errors at lines: ' . implode(', ', array_keys($err));
+			else {
+				$messages[] = 'Error at line: ' . implode(', ', array_keys($err));
+			}
+		}
+		$messages = array_merge($messages, $this->_context->Errors);
+		return empty($messages) ? null : $messages;
+	}
 }
-
