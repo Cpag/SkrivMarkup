@@ -72,6 +72,10 @@ class DocBookRenderingContext extends RenderingContext {
 		$func = $this->getParam('titleToIdFunction');
 		if (isset($func))
 			return ($func($depth, $text));
+		return $this->textToIdentifier($text);
+	}
+
+	public function textToIdentifier($text) {
 		// conversion of accented characters
 		// see http://www.weirdog.com/blog/php/supprimer-les-accents-des-caracteres-accentues.html
 		$text = htmlentities($text, ENT_NOQUOTES, 'utf-8');
@@ -140,7 +144,6 @@ class DocBookRenderingContext extends RenderingContext {
 	/**
 	 * Links processing.
 	 * @param	string	$url		The URL to process.
-	 * @param	string	$tagName	Name of the calling tag.
 	 * @return	array	Array with the processed URL and the generated label.
 	 *			Third parameter is about blank targeting of the link. It could be
 	 *			null (use the default behaviour), true (add a blank targeting) or

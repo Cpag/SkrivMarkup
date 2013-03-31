@@ -34,10 +34,10 @@ class Title extends \WikiRenderer\Block {
 		$config = $this->engine->getConfig();
 		$identifier = $config->renderContext->titleToIdentifier($level, $identifier);
 
-		$this->engine->getConfig()->addTocEntry($level, $html, $identifier);
-		$level += $this->engine->getConfig()->getParam('firstTitleLevel') - 1;
+		$config->renderContext->addTocEntry($level, $html, $identifier);
+		$level += $config->getParam('firstTitleLevel') - 1;
 
-		return ("<h$level id=\"" . $this->engine->getConfig()->getParam('anchorsPrefix') . "$identifier\">$html</h$level>");
+		return ("<h$level id=\"" . $config->getParam('anchorsPrefix') . "$identifier\">$html</h$level>");
 	}
 }
 
