@@ -1,16 +1,28 @@
 <?php
 
 namespace Skriv\Markup\Html;
+use WikiRenderer\Renderer;
 
 /**
  * traite les signes de type paragraphe
  */
+
 class Paragraph extends \WikiRenderer\Block {
 	public $type = 'p';
 	protected $_openTag = '<p>';
 	protected $_closeTag = '</p>';
 	// attribut utilisé pour gérer les retours charriots dans les paragraphes
-	private $_firstLine = true;
+	private $_firstLine;
+
+	function __construct(Renderer $wr) {
+		parent::__construct($wr);
+		$this->_mustClone = false;
+	}
+
+	public function open() {
+		$this->_firstLine = true;
+		return parent::open();
+	}
 
 	/**
 	 * Détection des paragraphes
@@ -36,8 +48,10 @@ class Paragraph extends \WikiRenderer\Block {
 	protected function _renderInlineTag($string) {
 		$string = $this->engine->inlineParser->parse($string);
 		// gestion des retours-charriot dans les paragraphes
-		$string = (!$this->_firstLine) ? "<br />$string" : $string;
-		$this->_firstLine = false;
+		if ($this->_firstLine)
+			$this->_firstLine = false;
+		else
+			$string = '<br/>' . $string;
 		return ($string);
 	}
 }
