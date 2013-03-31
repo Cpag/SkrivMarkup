@@ -47,6 +47,7 @@ class HtmlRenderingContext extends RenderingContext {
 	 *		- bool		nofollow		Add "rel='nofollow'" to every links.
 	 *		- bool		addFootnotes		Add footnotes' content at the end of the page.
 	 *		- bool		codeInlineStyles	Activate inline styles in code blocks. (default: false)
+	 *		- bool		ignoreMultiCR		Ignore multiple carriage returns. (default: true)
 	 *		- bool		debugMode		Activate the debug mode, for development purposes. (default: false)
 	 *		- bool		ext-lipsum		Activate the <<<lipsum>>> extension. (default: true)
 	 *		- bool		ext-date		Activate the <<date>> extension. (default: true)
@@ -70,6 +71,7 @@ class HtmlRenderingContext extends RenderingContext {
 			'nofollow'	 => ['bool', false],
 			'addFootnotes'	 => ['bool', false],
 			'codeInlineStyles' => ['bool', false],
+			'ignoreMultiCR' => ['bool', true],
 			'debugMode' => ['bool', false]
 		));
 
