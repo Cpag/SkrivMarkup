@@ -34,6 +34,9 @@ class Renderer {
 			case 'html':
 				$context = new Html\HtmlRenderingContext($params);
 				return new Renderer($context, new Html\Config($context));
+			case 'plain-text':
+				$context = new PlainText\PlainTextRenderingContext($params);
+				return new Renderer($context, new PlainText\Config($context));
 			case 'docbook':
 				$context = new DocBook\DocBookRenderingContext($params);
 				return new Renderer($context, new DocBook\Config($context));
