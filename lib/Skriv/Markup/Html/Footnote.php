@@ -4,23 +4,25 @@ namespace Skriv\Markup\Html;
 
 /**
  * Gestion des notes de bas de page.
- * @todo	Gérer les notes identifiées par un titre et non par un numéro.
  */
 class Footnote extends \WikiRenderer\TagXhtml {
 	protected $name = 'footnote';
 	public $beginTag = '((';
 	public $endTag = '))';
+	public $separators = array('|');
 
 	public function getContent() {
-		// on ajoute la note à la liste des notes de bas de page
+		if (isset($this->wikiContentArr[1])) {
+			$label = $this->wikiContentArr[0];
+			$content = $this->wikiContentArr[1];
+		} else {
+			$label = null;
+			$content = $this->wikiContentArr[0];
+		}
 		/** @var $config Config */
 		$config = $this->config;
-		$footnoteIds = $config->renderContext->addFootnote($this->contents[0]);
-
-		$id = $footnoteIds['id'];
-		$index = $footnoteIds['index'];
-
-		return "<sup class=\"footnote-ref\"><a href=\"#cite_note-$id\" name=\"cite_ref-$id\" id=\"cite_ref-$id\">$index</a></sup>";
+		$note = $config->renderContext->addFootnote($content, $label);
+		return '<sup class="footnote-ref"><a href="#' . $note['id'] . '">' . htmlspecialchars($note['label']) . '</a></sup>';
 	}
 }
 

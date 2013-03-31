@@ -19,6 +19,8 @@ class HtmlRenderingContext extends RenderingContext {
 	);
 
 	/* ************ SKRIV MARKUP SPECIFIC ATTRIBUTES ************* */
+	/** Used markup ids. */
+	private $_markupIds;
 	/** List of the footnotes. */
 	private $_footnotes;
 	/** Tree representing the table of content. */
@@ -35,8 +37,9 @@ class HtmlRenderingContext extends RenderingContext {
 	 *		- Closure	preParseFunction	Function for pre-parse process. (default: null)
 	 *		- Closure	postParseFunction	Function for post-parse process. (default: null)
 	 *		- Closure	titleToIdFunction	Function that converts title strings into HTML identifiers. (default: null)
-	 *		- string	anchorsPrefix		Prefix of anchors' identifiers. (default: "skriv-" + random value)
-	 *		- string	footnotesPrefix		Prefix of footnotes' identifiers. (default: "skriv-notes-" + random value)
+	 *		- string	markupIdsPrefix		Prefix for all identifiers. (default: "skriv-" + random value)
+	 *		- string	anchorsPrefix		Prefix of anchors' identifiers. (default: '')
+	 *		- string	footnotesPrefix		Prefix of footnotes' identifiers. (default: "note-")
 	 *		- bool		codeSyntaxHighlight	Activate code highlighting. (default: true)
 	 *		- bool		codeLineNumbers		Line numbers in code blocks. (default: true)
 	 *		- int		firstTitleLevel		Offset of first level titles. (default: 1)
@@ -53,8 +56,9 @@ class HtmlRenderingContext extends RenderingContext {
 			'shortenLongUrl' => ['bool', true],
 			'convertSmileys' => ['bool', true],
 			'convertSymbols' => ['bool', true],
+			'markupIdsPrefix' => ['string', 'skriv-' . base_convert(rand(0, 50000), 10, 36) . '-'],
 			'anchorsPrefix' => ['string', ''],
-			'footnotesPrefix' => ['string', 'skriv-' . base_convert(rand(0, 50000), 10, 36) . '-note-'],
+			'footnotesPrefix' => ['string', 'note-'],
 			'urlProcessFunction' => ['closure', null],
 			'preParseFunction' => ['closure', null],
 			'postParseFunction' => ['closure', null],
@@ -90,6 +94,10 @@ class HtmlRenderingContext extends RenderingContext {
 		$func = $this->getParam('titleToIdFunction');
 		if (isset($func))
 			return ($func($depth, $text));
+		return $this->textToIdentifier($text);
+	}
+
+	public function textToIdentifier($text) {
 		// conversion of accented characters
 		// see http://www.weirdog.com/blog/php/supprimer-les-accents-des-caracteres-accentues.html
 		$text = htmlentities($text, ENT_NOQUOTES, 'utf-8');
@@ -110,6 +118,25 @@ class HtmlRenderingContext extends RenderingContext {
 		return ($text);
 	}
 
+	/* ******************** ID MANAGEMENT **************** */
+	/**
+	 * Create an ID for HTML markup. The id is unique.
+	 * @param	string	$text	The input text.
+	 * @return	string	The text that will be parsed.
+	 */
+	public function createMarkupId($baseId) {
+		$prefixedBaseId = htmlentities($this->getParam('markupIdsPrefix') . $baseId, ENT_NOQUOTES, 'utf-8');
+		$id = $prefixedBaseId;
+		$num = 1;
+		while (isset($this->_markupIds[$id])) {
+			if ($num >= 100)
+				throw new \Exception('Unable to find an ID based on "' . $baseId . '"');
+			$id = $prefixedBaseId . '-' . ++$num;
+		}
+		$this->_markupIds[$id] = true;
+		return $id;
+	}
+
 	/* *************** PARSING MANAGEMENT **************** */
 	/**
 	 * Method called for pre-parse processing once for all the document.
@@ -117,6 +144,7 @@ class HtmlRenderingContext extends RenderingContext {
 	 * @return	string	The text that will be parsed.
 	 */
 	public function reset() {
+		$this->_markupIds = array();
 		$this->_footnotes = array();
 		$this->_toc = null;
 	}
@@ -160,7 +188,6 @@ class HtmlRenderingContext extends RenderingContext {
 	/**
 	 * Links processing.
 	 * @param	string	$url		The URL to process.
-	 * @param	string	$tagName	Name of the calling tag.
 	 * @return	array	Array with the processed URL and the generated label.
 	 *			Third parameter is about blank targeting of the link. It could be
 	 *			null (use the default behaviour), true (add a blank targeting) or
@@ -229,20 +256,15 @@ class HtmlRenderingContext extends RenderingContext {
 	 * @return	array	Hash with 'id' and 'index' keys.
 	 */
 	public function addFootnote($text, $label=null) {
-		if (isset($this->_parentConfig))
-			return ($this->_parentConfig->addFootnote($text, $label));
-		if (is_null($label))
-			$this->_footnotes[] = $text;
-		else
-			$this->_footnotes[] = array(
-				'label'	=> $label,
-				'text'	=> $text
-			);
-		$index = count($this->_footnotes);
-		return (array(
-			'id'	=> $this->getParam('footnotesPrefix') . "-$index",
-			'index'	=> $index
-		));
+		$index = count($this->_footnotes) + 1;
+		$note = array(
+			'label' => isset($label) ? $label : strval($index),
+			'text' => $text,
+			'id' => $this->createMarkupId($this->getParam('footnotesPrefix') . $index),
+			'index' => $index
+		);
+		$this->_footnotes[] = $note;
+		return $note;
 	}
 	/**
 	 * Returns the footnotes content. By default, the rendered HTML is returned, but the
@@ -253,24 +275,18 @@ class HtmlRenderingContext extends RenderingContext {
 	 */
 	public function getFootnotes($raw=false) {
 		if ($raw === true)
-			return ($this->_footnotes);
+			return $this->_footnotes;
 		if (empty($this->_footnotes))
-			return (null);
+			return null;
 		$footnotes = '';
-		$index = 1;
 		foreach ($this->_footnotes as $note) {
-			$id = $this->getParam('footnotesPrefix') . "-$index";
-			$noteHtml = "<p class=\"footnote\"><a href=\"#cite_ref-$id\" name=\"cite_note-$id\" id=\"cite_note-$id\">";
-			if (is_string($note))
-				$noteHtml .= "$index</a>. $note";
-			else
-				$noteHtml .= htmlspecialchars($note['label']) . "</a>. " . $note['text'];
+			$noteHtml = '<p class="footnote"><a href="#' . $note['id'] . '" id="' . $note['id'] . '">';
+			$noteHtml .= htmlspecialchars($note['label']) . '</a>. ' . htmlspecialchars($note['text']);
 			$noteHtml .= "</p>\n";
 			$footnotes .= $noteHtml;
-			$index++;
 		}
 		$footnotes = "<div class=\"footnotes\">\n$footnotes</div>\n";
-		return ($footnotes);
+		return $footnotes;
 	}
 
 	/* ****************** PRIVATE METHODS ******************** */
